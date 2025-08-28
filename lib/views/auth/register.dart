@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meetup/controllers/AuthController.dart';
 import 'package:meetup/core/theme.dart';
 import 'package:meetup/shared/custom_app_bar.dart';
 
@@ -12,12 +13,133 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   int _currentStep = 0;
   String? gender;
-  final nameController = TextEditingController();
-  final ageController = TextEditingController();
+  final nomController = TextEditingController();
+  final prenomController = TextEditingController();
+  DateTime? _selectedDate;
+  String _selectedGender = '';
+  String _selectedPreferences = '';
   final emailController = TextEditingController();
+  final telephoneController = TextEditingController();
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
 
-  Color accentColor =
-      AppTheme.primaryColor; // Tu peux choisir une couleur vive ici
+  final AuthController authController = AuthController();
+
+  Color accentColor = AppTheme.primaryColor;
+
+  // Erreurs de validation par étape
+  String? nomError;
+  String? prenomError;
+  String? dateError;
+
+  String? genderError;
+  String? preferencesError;
+
+  String? emailError;
+  String? telephoneError;
+
+  String? passwordError;
+  String? confirmPasswordError;
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().subtract(const Duration(days: 6570)), // 18 ans
+      firstDate: DateTime.now().subtract(const Duration(days: 36500)), // 100 ans
+      lastDate: DateTime.now().subtract(const Duration(days: 6570)), // 18 ans
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Theme.of(context).primaryColor,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+        dateError = null;
+      });
+    }
+  }
+
+  bool _validateStep0() {
+    bool valid = true;
+    setState(() {
+      nomError = nomController.text.trim().isEmpty ? 'Nom requis' : null;
+      prenomError = prenomController.text.trim().isEmpty ? 'Prénom requis' : null;
+      dateError = _selectedDate == null ? 'Date de naissance requise' : null;
+      if (nomError != null || prenomError != null || dateError != null) valid = false;
+    });
+    return valid;
+  }
+
+  bool _validateStep1() {
+    bool valid = true;
+    setState(() {
+      genderError = _selectedGender.isEmpty ? 'Genre requis' : null;
+      preferencesError = _selectedPreferences.isEmpty ? 'Préférences requises' : null;
+      if (genderError != null || preferencesError != null) valid = false;
+    });
+    return valid;
+  }
+
+  bool _validateStep2() {
+    bool valid = true;
+    final email = emailController.text.trim();
+    final tel = telephoneController.text.trim();
+    setState(() {
+      emailError = email.isEmpty
+          ? 'Email requis'
+          : (!RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$").hasMatch(email)
+              ? 'Email invalide'
+              : null);
+      telephoneError =
+          tel.isEmpty ? 'Téléphone requis' : null; // On peut ajouter regex pour téléphone si besoin
+      if (emailError != null || telephoneError != null) valid = false;
+    });
+    return valid;
+  }
+
+  bool _validateStep3() {
+    bool valid = true;
+    final pwd = passwordController.text.trim();
+    final confirmPwd = confirmPasswordController.text.trim();
+    setState(() {
+      passwordError = pwd.isEmpty ? 'Mot de passe requis' : (pwd.length < 6 ? 'Minimum 6 caractères' : null);
+      confirmPasswordError = confirmPwd.isEmpty
+          ? 'Confirmation requise'
+          : (confirmPwd != pwd ? 'Les mots de passe ne correspondent pas' : null);
+      if (passwordError != null || confirmPasswordError != null) valid = false;
+    });
+    return valid;
+  }
+
+  void _register() async {
+    final nom = nomController.text;
+    final prenom = prenomController.text;
+    final email = emailController.text;
+    final dateNaissance = _selectedDate;
+    final genre = _selectedGender;
+    final preferences = _selectedPreferences;
+    final telephone = telephoneController.text;
+    final password = passwordController.text;
+
+    try {
+      await authController.signInWithEmailPassword(email, password);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Registration failed: $e')),
+        );
+      }
+    }
+
+    // Ici ajoutez la logique d’enregistrement
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,14 +157,33 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           ),
           child: Stepper(
-            type: StepperType.horizontal,
+            type: StepperType.vertical,
             elevation: 0,
             currentStep: _currentStep,
             onStepContinue: () {
-              if (_currentStep < 2) {
-                setState(() => _currentStep += 1);
-              } else {
-                // Soumettre ou continuer
+              bool canContinue = false;
+              switch (_currentStep) {
+                case 0:
+                  canContinue = _validateStep0();
+                  break;
+                case 1:
+                  canContinue = _validateStep1();
+                  break;
+                case 2:
+                  canContinue = _validateStep2();
+                  break;
+                case 3:
+                  canContinue = _validateStep3();
+                  break;
+              }
+              if (canContinue) {
+                if (_currentStep < 3) {
+                  setState(() => _currentStep += 1);
+                } else {
+                  // Soumettre
+                  _register();
+                  // Optionnel: message succès, navigation, etc.
+                }
               }
             },
             onStepCancel: () {
@@ -52,41 +193,15 @@ class _RegisterPageState extends State<RegisterPage> {
             },
             controlsBuilder: (context, details) {
               return Padding(
-                padding: const EdgeInsets.only(
-                  top: 50,
-                ), // Pour déplacer les boutons vers le bas
+                padding: const EdgeInsets.only(top: 50),
                 child: Row(
                   children: [
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: accentColor,
-                        shape: StadiumBorder(),
-                        elevation: 3,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 28,
-                          vertical: 14,
-                        ),
-                      ),
-                      onPressed: details.onStepContinue,
-                      child: Text(
-                        _currentStep == 2 ? "Créer" : "Suivant",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    Spacer(), // espace flexible pour séparer les boutons
                     if (_currentStep > 0)
                       OutlinedButton(
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(color: accentColor),
                           shape: StadiumBorder(),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 28,
-                            vertical: 14,
-                          ),
+                          padding: EdgeInsets.symmetric(horizontal: 28, vertical: 14),
                         ),
                         onPressed: details.onStepCancel,
                         child: Text(
@@ -94,38 +209,45 @@ class _RegisterPageState extends State<RegisterPage> {
                           style: TextStyle(color: accentColor, fontSize: 15),
                         ),
                       ),
+                    Spacer(),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: accentColor,
+                        shape: StadiumBorder(),
+                        elevation: 3,
+                        padding: EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                      ),
+                      onPressed: details.onStepContinue,
+                      child: Text(
+                        _currentStep == 3 ? "Créer" : "Suivant",
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                    ),
                   ],
                 ),
               );
             },
-
             steps: [
               Step(
                 title: Text(
-                  "Infos",
+                  "Informations Personnelles",
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 isActive: _currentStep >= 0,
-                state: _currentStep > 0
-                    ? StepState.complete
-                    : StepState.indexed,
+                state: _currentStep > 0 ? StepState.complete : StepState.indexed,
                 content: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(18),
                     boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.shade200,
-                        blurRadius: 20,
-                        spreadRadius: 4,
-                      ),
+                      BoxShadow(color: Colors.grey.shade200, blurRadius: 20, spreadRadius: 4),
                     ],
                   ),
                   padding: EdgeInsets.all(18),
                   child: Column(
                     children: [
                       TextField(
-                        controller: nameController,
+                        controller: nomController,
                         decoration: InputDecoration(
                           labelText: 'Nom',
                           hintText: 'Entrez votre nom',
@@ -136,73 +258,191 @@ class _RegisterPageState extends State<RegisterPage> {
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
                           ),
+                          errorText: nomError,
                         ),
                       ),
-                      SizedBox(height: 16),
+                      SizedBox(height: 20),
                       TextField(
-                        controller: ageController,
-                        keyboardType: TextInputType.number,
+                        controller: prenomController,
                         decoration: InputDecoration(
-                          labelText: 'Âge',
-                          hintText: 'Entrez votre âge',
-                          prefixIcon: Icon(
-                            Icons.calendar_today,
-                            color: accentColor,
-                          ),
+                          labelText: 'Prénom',
+                          hintText: 'Entrez votre prénom',
+                          prefixIcon: Icon(Icons.person, color: accentColor),
                           filled: true,
-                          fillColor: const Color.fromARGB(255, 236, 234, 234),
+                          fillColor: const Color.fromARGB(255, 245, 243, 243),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
                           ),
+                          errorText: prenomError,
                         ),
                       ),
+                      SizedBox(height: 20),
+                      InkWell(
+                        onTap: () => _selectDate(context),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[50],
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.1),
+                                blurRadius: 10,
+                                spreadRadius: 1,
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                child: Icon(Icons.calendar_today, color: AppTheme.primaryColor),
+                              ),
+                              Text(
+                                _selectedDate == null
+                                    ? 'Date de naissance'
+                                    : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
+                                style: TextStyle(
+                                  color: _selectedDate == null ? const Color.fromARGB(255, 132, 131, 131) : Colors.black87,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (dateError != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              dateError!,
+                              style: TextStyle(color: Colors.red, fontSize: 12),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
               ),
               Step(
                 title: Text(
-                  "Genre",
+                  "Profil",
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 isActive: _currentStep >= 1,
-                state: _currentStep > 1
-                    ? StepState.complete
-                    : StepState.indexed,
-                content: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.shade200,
-                        blurRadius: 20,
-                        spreadRadius: 4,
-                      ),
-                    ],
-                  ),
-                  padding: EdgeInsets.all(18),
-                  child: DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
-                      labelText: 'Genre',
-                      prefixIcon: Icon(Icons.wc, color: accentColor),
-                      filled: true,
-                      fillColor: const Color.fromARGB(255, 241, 239, 239),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
+                state: _currentStep > 1 ? StepState.complete : StepState.indexed,
+                content: Column(
+                  children: [
+                    // Genre
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Genre :", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
+                        const SizedBox(height: 8),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(18),
+                            boxShadow: [
+                              BoxShadow(color: Colors.grey.shade200, blurRadius: 20, spreadRadius: 4),
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(10),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildGenderButton(
+                                      icon: Icons.male,
+                                      label: 'Homme',
+                                      value: 'M',
+                                    ),
+                                  ),
+                                  const SizedBox(width: 20),
+                                  Expanded(
+                                    child: _buildGenderButton(
+                                      icon: Icons.female,
+                                      label: 'Femme',
+                                      value: 'F',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (genderError != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      genderError!,
+                                      style: TextStyle(color: Colors.red, fontSize: 12),
+                                    ),
+                                  ),
+                                )
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    hint: Text('Sélectionnez votre genre'),
-                    value: gender,
-                    onChanged: (value) => setState(() => gender = value),
-                    items: [
-                      DropdownMenuItem(value: "Male", child: Text("Homme")),
-                      DropdownMenuItem(value: "Female", child: Text("Femme")),
-                      DropdownMenuItem(value: "Other", child: Text("Autre")),
-                    ],
-                  ),
+                    const SizedBox(height: 20),
+                    // Preferences
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Préférences :", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
+                        const SizedBox(height: 8),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(18),
+                            boxShadow: [
+                              BoxShadow(color: Colors.grey.shade200, blurRadius: 20, spreadRadius: 4),
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(18),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildPreferencesButton(
+                                      icon: Icons.male,
+                                      label: 'Homme',
+                                      value: 'M',
+                                    ),
+                                  ),
+                                  const SizedBox(width: 20),
+                                  Expanded(
+                                    child: _buildPreferencesButton(
+                                      icon: Icons.female,
+                                      label: 'Femme',
+                                      value: 'F',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (preferencesError != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      preferencesError!,
+                                      style: TextStyle(color: Colors.red, fontSize: 12),
+                                    ),
+                                  ),
+                                )
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20),
+                  ],
                 ),
               ),
               Step(
@@ -216,33 +456,199 @@ class _RegisterPageState extends State<RegisterPage> {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(18),
                     boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.shade200,
-                        blurRadius: 20,
-                        spreadRadius: 4,
-                      ),
+                      BoxShadow(color: Colors.grey.shade200, blurRadius: 20, spreadRadius: 4),
                     ],
                   ),
                   padding: EdgeInsets.all(18),
-                  child: TextField(
-                    controller: emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      hintText: 'Entrez votre email',
-                      prefixIcon: Icon(Icons.email, color: accentColor),
-                      filled: true,
-                      fillColor: const Color.fromARGB(255, 244, 242, 242),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: InputDecoration(
+                          labelText: 'Email',
+                          hintText: 'Entrez votre email',
+                          prefixIcon: Icon(Icons.email, color: accentColor),
+                          filled: true,
+                          fillColor: const Color.fromARGB(255, 244, 242, 242),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          errorText: emailError,
+                        ),
                       ),
-                    ),
+                      SizedBox(height: 20),
+                      TextField(
+                        controller: telephoneController,
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          labelText: 'Téléphone',
+                          hintText: 'Entrez votre numéro',
+                          prefixIcon: Icon(Icons.phone, color: accentColor),
+                          filled: true,
+                          fillColor: const Color.fromARGB(255, 244, 242, 242),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          errorText: telephoneError,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Step(
+                title: Text(
+                  'Sécurité',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                isActive: _currentStep >= 3,
+                content: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(color: Colors.grey.shade200, blurRadius: 20, spreadRadius: 4),
+                    ],
+                  ),
+                  padding: EdgeInsets.all(18),
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: passwordController,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          labelText: 'Mot de passe',
+                          hintText: 'Entrez votre mot de passe',
+                          prefixIcon: Icon(Icons.lock, color: accentColor),
+                          filled: true,
+                          fillColor: const Color.fromARGB(255, 244, 242, 242),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          errorText: passwordError,
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      TextField(
+                        controller: confirmPasswordController,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          labelText: 'Confirmer',
+                          hintText: 'Confirmez votre mot de passe',
+                          prefixIcon: Icon(Icons.lock, color: accentColor),
+                          filled: true,
+                          fillColor: const Color.fromARGB(255, 244, 242, 242),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          errorText: confirmPasswordError,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGenderButton({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    final isSelected = _selectedGender == value;
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedGender = value;
+          genderError = null;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.primaryColor : Colors.grey[50],
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              blurRadius: 10,
+              spreadRadius: 1,
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? Colors.white : Theme.of(context).primaryColor,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? Colors.white : Colors.black87,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPreferencesButton({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    final isSelected = _selectedPreferences == value;
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedPreferences = value;
+          preferencesError = null;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.primaryColor : Colors.grey[50],
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              blurRadius: 10,
+              spreadRadius: 1,
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? Colors.white : Theme.of(context).primaryColor,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? Colors.white : Colors.black87,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
     );
