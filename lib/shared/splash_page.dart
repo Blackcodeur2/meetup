@@ -4,6 +4,7 @@ import 'package:meetup/controllers/authGate.dart';
 import 'package:meetup/core/constants.dart';
 import 'package:meetup/core/theme.dart';
 import 'package:meetup/main.dart';
+import 'package:meetup/shared/avatar.dart';
 import 'package:meetup/shared/main_page.dart';
 import 'package:meetup/shared/welcome.dart';
 import 'package:meetup/views/auth/login.dart';

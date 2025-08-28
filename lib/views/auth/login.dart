@@ -20,25 +20,54 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController passwordController = TextEditingController();
   final AuthController authController = AuthController();
 
-  @override
-  void initState() {
-    super.initState();
-    // Init controllers if needed (already initialized on declaration)
+  void _showError(String msg) {
+    setState(() {
+      errorMsg = msg;
+    });
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() {
+          errorMsg = null;
+        });
+      }
+    });
   }
-  void _login() async{
+
+  // Validation simple des champs e-mail et mot de passe
+  bool _validateFields() {
     final email = emailController.text.trim();
     final password = passwordController.text;
-  try {
-   final response = await authController.signUpWithEmailPassword(email, password);
-   print(response);
-    print('connexion reussie');
-  } catch (e) {
-   if(mounted){
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed: $e')),
-      );
-  }}
-    
+    if (email.isEmpty) {
+      _showError('L\'email est requis');
+      return false;
+    }
+    final emailRegex = RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$");
+    if (!emailRegex.hasMatch(email)) {
+      _showError('Format d\'email invalide');
+      return false;
+    }
+    if (password.isEmpty) {
+      _showError('Le mot de passe est requis');
+      return false;
+    }
+    return true;
+  }
+
+  void _login() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text;
+    try {
+      final response = await authController.signInWithEmailPassword(email, password);
+      // Gérer la réussite, ex: navigation vers main page
+    } catch (e) {
+      _showError('Email ou mot de passe incorrect');
+    }
+  }
+
+  void _validateAndLogin() {
+    if (_validateFields()) {
+      _login();
+    }
   }
 
   @override
@@ -75,6 +104,29 @@ class _LoginPageState extends State<LoginPage> {
                 ],
               ),
             ),
+            if (errorMsg != null)
+              Card(
+                color: Colors.red[50],
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline, color: Colors.red),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          errorMsg!,
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             const SizedBox(height: 32),
             TextField(
               controller: emailController,
@@ -107,20 +159,12 @@ class _LoginPageState extends State<LoginPage> {
               ),
               obscureText: true,
             ),
-            const SizedBox(height: 8),
-            if (errorMsg != null)
-              Text(
-                errorMsg!,
-                style: const TextStyle(
-                  color: Colors.redAccent,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+            const SizedBox(height: 5),
             Align(
               alignment: Alignment.centerLeft,
               child: TextButton(
                 onPressed: () {
-                  // TODO: Ajouter la fonctionnalité mot de passe oublié
+                  // TODO: Ajouter fonctionnalité mot de passe oublié
                 },
                 child: const Text(
                   "Mot de passe oublié ?",
@@ -128,9 +172,9 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             ElevatedButton(
-              onPressed: (){_login();},
+              onPressed: _validateAndLogin,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryColor,
                 minimumSize: const Size(double.infinity, 52),
@@ -153,7 +197,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
             Align(
               alignment: Alignment.centerLeft,
               child: TextButton(
