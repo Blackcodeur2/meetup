@@ -58,9 +58,13 @@ class _LoginPageState extends State<LoginPage> {
     final password = passwordController.text;
     try {
       final response = await authController.signInWithEmailPassword(email, password);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainPage()),
+      );
       // Gérer la réussite, ex: navigation vers main page
     } catch (e) {
-      _showError('Email ou mot de passe incorrect');
+      _showError('Erreur lors de la connexion: $e');
     }
   }
 

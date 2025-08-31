@@ -1,7 +1,12 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'package:flutter/material.dart';
 import 'package:meetup/controllers/AuthController.dart';
+import 'package:meetup/core/const.dart';
 import 'package:meetup/core/theme.dart';
 import 'package:meetup/shared/custom_app_bar.dart';
+import 'package:meetup/types/users.dart';
+import 'package:meetup/views/auth/login.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -44,8 +49,12 @@ class _RegisterPageState extends State<RegisterPage> {
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now().subtract(const Duration(days: 6570)), // 18 ans
-      firstDate: DateTime.now().subtract(const Duration(days: 36500)), // 100 ans
+      initialDate: DateTime.now().subtract(
+        const Duration(days: 6570),
+      ), // 18 ans
+      firstDate: DateTime.now().subtract(
+        const Duration(days: 36500),
+      ), // 100 ans
       lastDate: DateTime.now().subtract(const Duration(days: 6570)), // 18 ans
       builder: (context, child) {
         return Theme(
@@ -70,9 +79,12 @@ class _RegisterPageState extends State<RegisterPage> {
     bool valid = true;
     setState(() {
       nomError = nomController.text.trim().isEmpty ? 'Nom requis' : null;
-      prenomError = prenomController.text.trim().isEmpty ? 'Prénom requis' : null;
+      prenomError = prenomController.text.trim().isEmpty
+          ? 'Prénom requis'
+          : null;
       dateError = _selectedDate == null ? 'Date de naissance requise' : null;
-      if (nomError != null || prenomError != null || dateError != null) valid = false;
+      if (nomError != null || prenomError != null || dateError != null)
+        valid = false;
     });
     return valid;
   }
@@ -81,7 +93,9 @@ class _RegisterPageState extends State<RegisterPage> {
     bool valid = true;
     setState(() {
       genderError = _selectedGender.isEmpty ? 'Genre requis' : null;
-      preferencesError = _selectedPreferences.isEmpty ? 'Préférences requises' : null;
+      preferencesError = _selectedPreferences.isEmpty
+          ? 'Préférences requises'
+          : null;
       if (genderError != null || preferencesError != null) valid = false;
     });
     return valid;
@@ -95,10 +109,11 @@ class _RegisterPageState extends State<RegisterPage> {
       emailError = email.isEmpty
           ? 'Email requis'
           : (!RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$").hasMatch(email)
-              ? 'Email invalide'
-              : null);
-      telephoneError =
-          tel.isEmpty ? 'Téléphone requis' : null; // On peut ajouter regex pour téléphone si besoin
+                ? 'Email invalide'
+                : null);
+      telephoneError = tel.isEmpty
+          ? 'Téléphone requis'
+          : null; // On peut ajouter regex pour téléphone si besoin
       if (emailError != null || telephoneError != null) valid = false;
     });
     return valid;
@@ -109,35 +124,54 @@ class _RegisterPageState extends State<RegisterPage> {
     final pwd = passwordController.text.trim();
     final confirmPwd = confirmPasswordController.text.trim();
     setState(() {
-      passwordError = pwd.isEmpty ? 'Mot de passe requis' : (pwd.length < 6 ? 'Minimum 6 caractères' : null);
+      passwordError = pwd.isEmpty
+          ? 'Mot de passe requis'
+          : (pwd.length < 6 ? 'Minimum 6 caractères' : null);
       confirmPasswordError = confirmPwd.isEmpty
           ? 'Confirmation requise'
-          : (confirmPwd != pwd ? 'Les mots de passe ne correspondent pas' : null);
+          : (confirmPwd != pwd
+                ? 'Les mots de passe ne correspondent pas'
+                : null);
       if (passwordError != null || confirmPasswordError != null) valid = false;
     });
     return valid;
   }
 
   void _register() async {
-    final nom = nomController.text;
-    final prenom = prenomController.text;
-    final email = emailController.text;
-    final dateNaissance = _selectedDate;
-    final genre = _selectedGender;
-    final preferences = _selectedPreferences;
-    final telephone = telephoneController.text;
-    final password = passwordController.text;
 
     try {
-      await authController.signInWithEmailPassword(email, password);
+      await authController.signUpWithEmailPassword(emailController.text.trim(), passwordController.text);
+      final user_id = authController.getCurrentUserId();
+      final MyUser user = MyUser(
+        
+        nom: nomController.text,
+        prenom: prenomController.text,
+        dateNaissance: _selectedDate.toString(),
+        sexe: _selectedGender,
+        email: emailController.text.trim(),
+        profession: '',
+        pays: '',
+        ville: '',
+        bio: '',
+        preference: _selectedPreferences,
+      );
+
+      await authController.createProfile(user);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+      );
     } catch (e) {
       if (mounted) {
+       // print(e);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Registration failed: $e')),
+          SnackBar(
+            content: Text('Erreur lors de l\'inscription: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
-
     // Ici ajoutez la logique d’enregistrement
   }
 
@@ -182,6 +216,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 } else {
                   // Soumettre
                   _register();
+              
                   // Optionnel: message succès, navigation, etc.
                 }
               }
@@ -201,7 +236,10 @@ class _RegisterPageState extends State<RegisterPage> {
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(color: accentColor),
                           shape: StadiumBorder(),
-                          padding: EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 28,
+                            vertical: 14,
+                          ),
                         ),
                         onPressed: details.onStepCancel,
                         child: Text(
@@ -215,12 +253,19 @@ class _RegisterPageState extends State<RegisterPage> {
                         backgroundColor: accentColor,
                         shape: StadiumBorder(),
                         elevation: 3,
-                        padding: EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 28,
+                          vertical: 14,
+                        ),
                       ),
                       onPressed: details.onStepContinue,
                       child: Text(
                         _currentStep == 3 ? "Créer" : "Suivant",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ],
@@ -234,13 +279,19 @@ class _RegisterPageState extends State<RegisterPage> {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 isActive: _currentStep >= 0,
-                state: _currentStep > 0 ? StepState.complete : StepState.indexed,
+                state: _currentStep > 0
+                    ? StepState.complete
+                    : StepState.indexed,
                 content: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(18),
                     boxShadow: [
-                      BoxShadow(color: Colors.grey.shade200, blurRadius: 20, spreadRadius: 4),
+                      BoxShadow(
+                        color: Colors.grey.shade200,
+                        blurRadius: 20,
+                        spreadRadius: 4,
+                      ),
                     ],
                   ),
                   padding: EdgeInsets.all(18),
@@ -296,15 +347,22 @@ class _RegisterPageState extends State<RegisterPage> {
                           child: Row(
                             children: [
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                child: Icon(Icons.calendar_today, color: AppTheme.primaryColor),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                child: Icon(
+                                  Icons.calendar_today,
+                                  color: AppTheme.primaryColor,
+                                ),
                               ),
                               Text(
                                 _selectedDate == null
                                     ? 'Date de naissance'
                                     : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
                                 style: TextStyle(
-                                  color: _selectedDate == null ? const Color.fromARGB(255, 132, 131, 131) : Colors.black87,
+                                  color: _selectedDate == null
+                                      ? const Color.fromARGB(255, 132, 131, 131)
+                                      : Colors.black87,
                                   fontSize: 16,
                                 ),
                               ),
@@ -333,21 +391,34 @@ class _RegisterPageState extends State<RegisterPage> {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 isActive: _currentStep >= 1,
-                state: _currentStep > 1 ? StepState.complete : StepState.indexed,
+                state: _currentStep > 1
+                    ? StepState.complete
+                    : StepState.indexed,
                 content: Column(
                   children: [
                     // Genre
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Genre :", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
+                        Text(
+                          "Genre :",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
                         const SizedBox(height: 8),
                         Container(
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(18),
                             boxShadow: [
-                              BoxShadow(color: Colors.grey.shade200, blurRadius: 20, spreadRadius: 4),
+                              BoxShadow(
+                                color: Colors.grey.shade200,
+                                blurRadius: 20,
+                                spreadRadius: 4,
+                              ),
                             ],
                           ),
                           padding: const EdgeInsets.all(10),
@@ -379,10 +450,13 @@ class _RegisterPageState extends State<RegisterPage> {
                                     alignment: Alignment.centerLeft,
                                     child: Text(
                                       genderError!,
-                                      style: TextStyle(color: Colors.red, fontSize: 12),
+                                      style: TextStyle(
+                                        color: Colors.red,
+                                        fontSize: 12,
+                                      ),
                                     ),
                                   ),
-                                )
+                                ),
                             ],
                           ),
                         ),
@@ -393,14 +467,25 @@ class _RegisterPageState extends State<RegisterPage> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Préférences :", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
+                        Text(
+                          "Préférences :",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
                         const SizedBox(height: 8),
                         Container(
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(18),
                             boxShadow: [
-                              BoxShadow(color: Colors.grey.shade200, blurRadius: 20, spreadRadius: 4),
+                              BoxShadow(
+                                color: Colors.grey.shade200,
+                                blurRadius: 20,
+                                spreadRadius: 4,
+                              ),
                             ],
                           ),
                           padding: const EdgeInsets.all(18),
@@ -432,10 +517,13 @@ class _RegisterPageState extends State<RegisterPage> {
                                     alignment: Alignment.centerLeft,
                                     child: Text(
                                       preferencesError!,
-                                      style: TextStyle(color: Colors.red, fontSize: 12),
+                                      style: TextStyle(
+                                        color: Colors.red,
+                                        fontSize: 12,
+                                      ),
                                     ),
                                   ),
-                                )
+                                ),
                             ],
                           ),
                         ),
@@ -456,7 +544,11 @@ class _RegisterPageState extends State<RegisterPage> {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(18),
                     boxShadow: [
-                      BoxShadow(color: Colors.grey.shade200, blurRadius: 20, spreadRadius: 4),
+                      BoxShadow(
+                        color: Colors.grey.shade200,
+                        blurRadius: 20,
+                        spreadRadius: 4,
+                      ),
                     ],
                   ),
                   padding: EdgeInsets.all(18),
@@ -510,7 +602,11 @@ class _RegisterPageState extends State<RegisterPage> {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(18),
                     boxShadow: [
-                      BoxShadow(color: Colors.grey.shade200, blurRadius: 20, spreadRadius: 4),
+                      BoxShadow(
+                        color: Colors.grey.shade200,
+                        blurRadius: 20,
+                        spreadRadius: 4,
+                      ),
                     ],
                   ),
                   padding: EdgeInsets.all(18),

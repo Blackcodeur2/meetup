@@ -5,8 +5,8 @@ class AppConstants {
   static const String appDescription = 'Modern African Dating App';
   
   // API Configuration
-  static const String supabaseUrl = 'https://cntvamovncufkngcbdcm.supabase.co';
-  static const String apiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNudHZhbW92bmN1ZmtuZ2NiZGNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMDg4NTUsImV4cCI6MjA3MTg4NDg1NX0.Jv-tswoEG4w6aw80zB6-8X09NjK1_oKd-KL_RTwBhvk';
+  static const String supabaseUrl = 'https://drlcjuueapevnzfqvjgb.supabase.co';
+  static const String apiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRybGNqdXVlYXBldm56ZnF2amdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1OTgxMjcsImV4cCI6MjA3MjE3NDEyN30.vk6ej1GnJISah0CuuKiFnqo6n0Mho2jhNWMSH1aLqmQ';
   static const Duration apiTimeout = Duration(seconds: 30);
   
   // Storage Keys
