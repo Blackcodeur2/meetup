@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meetup/shared/custom_app_bar.dart';
-import 'package:meetup/views/settings/pro.dart';
-import 'package:meetup/views/settings/profile.dart';
+import 'package:meetup/shared/main_page.dart';
+import 'package:meetup/views/discover/profile.dart';
 
 class SettingsPage extends StatelessWidget {
   final int selectedIndex;
@@ -53,7 +53,7 @@ class SettingsPage extends StatelessWidget {
             margin: EdgeInsets.zero,
             child: Column(
               children: [
-                _buildCardListTile('Mon compte', Icons.person, (){Navigator.push(context,MaterialPageRoute(builder: (context) => MesUsersPage()));}),
+                _buildCardListTile('Mon compte', Icons.person, (){Navigator.push(context,MaterialPageRoute(builder: (context) => MainPage()));}),
                 _buildCardListTile('Aide et assistance', Icons.help_outline, () {}),
                 _buildCardListTile('Politique de confidentialité', Icons.privacy_tip, () {}),
                 _buildCardListTile('Conditions d\'utilisation', Icons.description, () {}),

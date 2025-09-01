@@ -45,6 +45,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSPhotoLibraryUsageDescription</key>
+<string>Cette application a besoin d'accéder à votre galerie pour choisir une photo de profil.</string>
+
 	<key>CFBundleURLTypes</key>
 <array>
 	<dict>

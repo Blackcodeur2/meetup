@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:meetup/core/const.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Avatar extends StatefulWidget {
-  const Avatar({super.key, required this.imageUrl, required this.onUpload});
+  const Avatar({
+    super.key,
+    required this.imageUrl,
+    required this.onUpload,
+  });
+
   final String? imageUrl;
   final void Function(String) onUpload;
 
@@ -14,9 +20,6 @@ class Avatar extends StatefulWidget {
 class _AvatarState extends State<Avatar> {
   bool _isLoading = false;
 
-  final SupabaseClient _supabase =
-      Supabase.instance.client; // Récupérer le client Supabase ici
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -26,87 +29,39 @@ class _AvatarState extends State<Avatar> {
             width: 150,
             height: 150,
             color: Colors.grey,
-            child: const Center(child: Text('No Image')),
+            child: const Center(
+              child: Text('No Image'),
+            ),
           )
         else
-          ClipRRect(
-            borderRadius: BorderRadius.circular(75),
-            child: Image.network(
-              widget.imageUrl!,
-              width: 150,
-              height: 150,
-              fit: BoxFit.cover,
-            ),
+          Image.network(
+            widget.imageUrl!,
+            width: 150,
+            height: 150,
+            fit: BoxFit.cover,
           ),
-        const SizedBox(height: 12),
         ElevatedButton(
           onPressed: _isLoading ? null : _upload,
-          child: _isLoading
-              ? SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2,
-                  ),
-                )
-              : const Text('Upload'),
+          child: const Text('Upload'),
         ),
       ],
     );
   }
 
   Future<void> _upload() async {
-    final picker = ImagePicker();
-    final imageFile = await picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 300,
-      maxHeight: 300,
-    );
-    if (imageFile == null) return;
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
-    setState(() => _isLoading = true);
-
-    try {
-      final bytes = await imageFile.readAsBytes();
-      final fileExt = imageFile.path.split('.').last;
-      final fileName = '${DateTime.now().toIso8601String()}.$fileExt';
-      final filePath = fileName;
-
-      await _supabase.storage
-          .from('avatars')
-          .uploadBinary(
-            filePath,
-            bytes,
-            fileOptions: FileOptions(contentType: imageFile.mimeType),
-          );
-
-      final imageUrlResponse = await _supabase.storage
-          .from('avatars')
-          .createSignedUrl(filePath, 60 * 60 * 24 * 365 * 10);
-
-      if (imageUrlResponse == null) {
-        throw Exception('Failed to create signed URL');
-      }
-
-      widget.onUpload(imageUrlResponse);
-    } on StorageException catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.message), backgroundColor: Colors.red),
-        );
-      }
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Unexpected error occurred'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+    if(image != null){
+      return;
+    }
+    final imageBytes = await image?.readAsBytes();
+    final userId = supabase.auth.currentUser?.id;
+    final imageChemin = '/$userId/profile';
+    if (userId != null && imageBytes != null) {
+      supabase.storage.from('profilebucket').updateBinary(imageChemin, imageBytes);
+      final imageUrl = supabase.storage.from('profilebucket').getPublicUrl(imageChemin);
+      widget.onUpload(imageUrl);
     }
   }
 }
