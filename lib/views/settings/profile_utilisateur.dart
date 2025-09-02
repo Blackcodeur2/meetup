@@ -73,7 +73,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         final r = await supabase
             .from('profile')
             .update({'profile_url': publicUrl})
-            .eq('user_id', 'b262a5cb-881b-43d1-a0e9-11dd13164fcb')
+            .eq('user_id', currentUserId)
             .select();
 
         print('Update réponse : ${r.length}');

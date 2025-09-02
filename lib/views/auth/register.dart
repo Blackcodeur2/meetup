@@ -645,6 +645,8 @@ class _RegisterPageState extends State<RegisterPage> {
                           errorText: confirmPasswordError,
                         ),
                       ),
+
+                      
                     ],
                   ),
                 ),
@@ -653,6 +655,24 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
         ),
       ),
+      /*floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result = await AuthController.googleSignIn();
+          if (result!.user != null) {
+            // Handle successful sign-in
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const LoginPage()),
+            );
+          } else {
+            // Handle sign-in error
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Erreur de connexion')),
+            );
+          }
+        },
+        child: Icon(Icons.login),
+      ),*/
     );
   }
 

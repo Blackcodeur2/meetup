@@ -79,7 +79,7 @@ void initState() {
 
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const AuthGate()),
+      MaterialPageRoute(builder: (context) => const WelcomePage()),
     );
   }
   

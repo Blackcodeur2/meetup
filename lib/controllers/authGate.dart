@@ -8,6 +8,7 @@ authenticated -> HomePage
 
 import 'package:flutter/material.dart';
 import 'package:meetup/shared/main_page.dart';
+import 'package:meetup/shared/splash_page.dart';
 import 'package:meetup/views/auth/login.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -27,7 +28,7 @@ class AuthGate extends StatelessWidget {
         //verification de la session d'authentification
          final session = snapshot.data;
          if (session != null) {
-           return LoginPage();
+           return SplashPage();
          } else {
            return MainPage();
          }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:meetup/controllers/AuthController.dart';
+import 'package:meetup/views/auth/login.dart';
 
 class LoveAppBar extends StatefulWidget implements PreferredSizeWidget {
   final String title;
@@ -44,6 +46,13 @@ class _LoveAppBarState extends State<LoveAppBar>
       end: 1.3,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
+
+  void _logout() async {
+    await AuthController.signOut();
+    if (mounted) {
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginPage()));
+    }
+  } 
 
   @override
   void dispose() {
@@ -128,6 +137,7 @@ class _LoveAppBarState extends State<LoveAppBar>
 
               // ===== Ajout du ThemeSwitcher =====
               if (widget.actions != null) ...widget.actions!,
+              IconButton(onPressed: () {}, icon: const Icon(Icons.logout))
             ],
           ),
         ),

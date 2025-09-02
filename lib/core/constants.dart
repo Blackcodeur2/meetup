@@ -6,7 +6,10 @@ class AppConstants {
   
   // API Configuration
   static const String supabaseUrl = 'https://drlcjuueapevnzfqvjgb.supabase.co';
-  static const String apiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRybGNqdXVlYXBldm56ZnF2amdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1OTgxMjcsImV4cCI6MjA3MjE3NDEyN30.vk6ej1GnJISah0CuuKiFnqo6n0Mho2jhNWMSH1aLqmQ';
+  static const String apiKey = 'sb_publishable_E8zc-OTwk8_Z3UOb-gAnrg_6bFrmn3I';
+
+  static const String iosClientId = '241851830615-sudhv454tgg8tdj684kb3ml2oppffmiv.apps.googleusercontent.com';
+  static const String webClientId = '241851830615-moce3f8lhttre933mfr9cnqi1bevseps.apps.googleusercontent.com';
   static const Duration apiTimeout = Duration(seconds: 30);
   
   // Storage Keys
