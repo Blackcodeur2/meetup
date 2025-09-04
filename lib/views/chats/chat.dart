@@ -29,7 +29,7 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: LoveAppBar(
-        title: 'userName',
+        title: widget.userName,
         showLogoutButton: false,
       ),
       body: Column(

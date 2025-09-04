@@ -49,10 +49,8 @@ class _LoveAppBarState extends State<LoveAppBar>
 
   void _logout() async {
     await AuthController.signOut();
-    if (mounted) {
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginPage()));
-    }
-  } 
+  }
 
   @override
   void dispose() {
@@ -136,8 +134,10 @@ class _LoveAppBarState extends State<LoveAppBar>
               ),
 
               // ===== Ajout du ThemeSwitcher =====
-              if (widget.actions != null) ...widget.actions!,
-              IconButton(onPressed: () {}, icon: const Icon(Icons.logout))
+
+              IconButton(onPressed: () {_logout();}, icon: const Icon(Icons.logout), style: IconButton.styleFrom(
+                foregroundColor: Colors.white,
+              ))
             ],
           ),
         ),

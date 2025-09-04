@@ -7,6 +7,7 @@ import 'package:meetup/core/theme.dart';
 import 'package:meetup/shared/custom_app_bar.dart';
 import 'package:meetup/types/users.dart';
 import 'package:meetup/views/auth/login.dart';
+import 'package:meetup/views/auth/login_after_signup.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -138,32 +139,40 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void _register() async {
-
     try {
-      await authController.signUpWithEmailPassword(emailController.text.trim(), passwordController.text);
-      final user_id = authController.getCurrentUserId();
-      final MyUser user = MyUser(
-        
-        nom: nomController.text,
-        prenom: prenomController.text,
-        dateNaissance: _selectedDate.toString(),
-        sexe: _selectedGender,
-        email: emailController.text.trim(),
-        profession: '',
-        pays: '',
-        ville: '',
-        bio: '',
-        preference: _selectedPreferences,
+      await authController.signUpWithEmailPassword(
+        emailController.text.trim(),
+        passwordController.text,
       );
+      print('Inscription réussie');
+      print('Création du profil...');
+      try {
+        final nom = nomController.text.trim();
+        final prenom = prenomController.text.trim();
+        final email = emailController.text.trim();
+        final dateNaissance = _selectedDate.toString();
+        final genre = _selectedGender;
+        final preference = _selectedPreferences;
 
-      await authController.createProfile(user);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginPage()),
-      );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => LoginAfterSignUpPage(
+              email: email,
+              nom: nom,
+              prenom: prenom,
+              dateNaissance: dateNaissance,
+              genre: genre,
+              preference: preference,
+            ),
+          ),
+        );
+      } catch (e) {
+        print('Erreur lors de la création du profil: $e');
+      }
     } catch (e) {
       if (mounted) {
-       // print(e);
+        // print(e);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erreur lors de l\'inscription: $e'),
@@ -216,7 +225,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 } else {
                   // Soumettre
                   _register();
-              
+
                   // Optionnel: message succès, navigation, etc.
                 }
               }
@@ -645,8 +654,6 @@ class _RegisterPageState extends State<RegisterPage> {
                           errorText: confirmPasswordError,
                         ),
                       ),
-
-                      
                     ],
                   ),
                 ),

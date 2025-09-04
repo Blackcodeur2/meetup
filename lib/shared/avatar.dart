@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/*import 'package:flutter/material.dart';
 import 'package:meetup/shared/bottom_navigation_bar.dart';
 import 'package:meetup/views/chats/discussions.dart';
 import 'package:meetup/views/discover/discover.dart';
@@ -105,3 +105,4 @@ class _MainPageState extends State<MainPage> {
     );
   }
 }
+*/

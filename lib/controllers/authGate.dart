@@ -1,11 +1,9 @@
 /*
 Auth Gate- verifie les changement de l'etat d'authentification
 ==================================
-
 unauthenticated -> LoginPage
 authenticated -> HomePage
 */
-
 import 'package:flutter/material.dart';
 import 'package:meetup/shared/main_page.dart';
 import 'package:meetup/shared/splash_page.dart';

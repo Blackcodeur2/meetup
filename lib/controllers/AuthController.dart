@@ -9,6 +9,7 @@ import 'package:meetup/types/users.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthController {
+
   //register avec email et mot de passe
   Future<AuthResponse> signUpWithEmailPassword(
     String email,
@@ -55,19 +56,38 @@ class AuthController {
     );
   }
 
-  Future createProfile(MyUser user) async {
-    await supabase.from('profile').insert({
-      'nom': user.nom,
-      'prenom': user.prenom,
-      'email': user.email,
-      'date_naissance': user.dateNaissance,
-      'sexe': user.sexe,
-      'preference': user.preference,
-      'profession': user.profession,
-      'pays': user.pays,
-      'ville': user.ville,
-      'bio': user.bio,
-    });
+  /// Récupérer le profil de l'utilisateur connecté
+  Future<Map<String, dynamic>?> getCurrentUserProfile() async {
+    // Étape 1: Récupérer l'utilisateur connecté
+    final user = supabase.auth.currentUser;
+    if (user == null) {
+      return null; // Aucun utilisateur connecté
+    }
+
+    // Étape 2: Récupérer les données du profil lié à cet utilisateur
+    final response = await supabase
+        .from('profile')
+        .select()
+        .eq('user_id', user.id)
+        .single();
+
+    // Étape 3: Retourner les données du profil
+    return response;
+  }
+
+  /// Récupère tous les utilisateurs sauf l'utilisateur connecté
+  Future<List<Map<String, dynamic>>> getAllUsersExceptCurrent() async {
+    final currentUser = supabase.auth.currentUser;
+    if (currentUser == null) {
+      return [];
+    }
+
+    final response = await supabase
+        .from('profile')
+        .select()
+        .neq('user_id', currentUser.id); // exclure l’utilisateur connecté
+
+    return response;
   }
 
   //Logout
@@ -86,12 +106,18 @@ class AuthController {
   }
 
   //Recuperer  l'id de l'utilisateur connecte
-  String getCurrentUserId() {
-    final session = supabase.auth.currentSession;
-    final user = session?.user;
+  static String? getCurrentUserId() {
+  final session = supabase.auth.currentSession;
+  final user = session?.user;
 
-    return user!.id;
+  if (user == null) {
+    // Gestion quand aucun user connecté (ex: retourner null ou une chaîne vide)
+    return null; // ou return '';
   }
+
+  return user.id;
+}
+
 
   //Recuperer  Toutes les informations de l'utilisateur connecte
 

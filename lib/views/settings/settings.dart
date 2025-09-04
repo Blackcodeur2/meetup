@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:meetup/shared/custom_app_bar.dart';
 import 'package:meetup/shared/main_page.dart';
+import 'package:meetup/tests/t.dart';
 import 'package:meetup/views/discover/profile.dart';
+import 'package:meetup/views/settings/profile_utilisateur.dart';
 
 class SettingsPage extends StatelessWidget {
   final int selectedIndex;
@@ -30,14 +32,21 @@ class SettingsPage extends StatelessWidget {
 
           // Groupe Préférences dans une Card
           Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             elevation: 3,
             margin: EdgeInsets.zero,
             child: Column(
               children: [
                 _buildCardListTile('Découverte', Icons.explore, () {}),
                 _buildCardListTile('Notifications', Icons.notifications, () {}),
-                _buildCardListTileWithTrailingText('Langue', Icons.language, 'Français', () {}),
+                _buildCardListTileWithTrailingText(
+                  'Langue',
+                  Icons.language,
+                  'Français',
+                  () {},
+                ),
               ],
             ),
           ),
@@ -48,16 +57,42 @@ class SettingsPage extends StatelessWidget {
 
           // Groupe Informations dans une Card
           Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             elevation: 3,
             margin: EdgeInsets.zero,
             child: Column(
               children: [
-                _buildCardListTile('Mon compte', Icons.person, (){Navigator.push(context,MaterialPageRoute(builder: (context) => MainPage()));}),
-                _buildCardListTile('Aide et assistance', Icons.help_outline, () {}),
-                _buildCardListTile('Politique de confidentialité', Icons.privacy_tip, () {}),
-                _buildCardListTile('Conditions d\'utilisation', Icons.description, () {}),
-                _buildCardListTileWithTrailingText('Version de l’application', Icons.info_outline, '1.2.3', () {}),
+                _buildCardListTile('Mon compte', Icons.person, () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UserProfilePage()
+                    ),
+                  );
+                }),
+                _buildCardListTile(
+                  'Aide et assistance',
+                  Icons.help_outline,
+                  () {},
+                ),
+                _buildCardListTile(
+                  'Politique de confidentialité',
+                  Icons.privacy_tip,
+                  () {},
+                ),
+                _buildCardListTile(
+                  'Conditions d\'utilisation',
+                  Icons.description,
+                  () {},
+                ),
+                _buildCardListTileWithTrailingText(
+                  'Version de l’application',
+                  Icons.info_outline,
+                  '1.2.3',
+                  () {},
+                ),
               ],
             ),
           ),
@@ -79,7 +114,10 @@ class SettingsPage extends StatelessWidget {
               },
               child: const Text(
                 'Se déconnecter',
-                style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -102,14 +140,22 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildCardListTileWithTrailingText(String title, IconData icon, String trailingText, VoidCallback onTap) {
+  Widget _buildCardListTileWithTrailingText(
+    String title,
+    IconData icon,
+    String trailingText,
+    VoidCallback onTap,
+  ) {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: Colors.blue.shade100,
         child: Icon(icon, color: Colors.blue.shade700),
       ),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-      trailing: Text(trailingText, style: const TextStyle(fontWeight: FontWeight.w600)),
+      trailing: Text(
+        trailingText,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       onTap: onTap,
       shape: const Border(bottom: BorderSide(color: Colors.grey, width: 0.15)),

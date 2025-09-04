@@ -9,13 +9,19 @@ import 'package:meetup/shared/main_page.dart';
 import 'package:meetup/views/auth/register.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class LoginAfterSignUpPage extends StatefulWidget {
+  final String email;
+  final String nom;
+  final String prenom;
+  final String dateNaissance;
+  final String genre;
+  final String preference;
+  const LoginAfterSignUpPage({super.key, required this.email, required this.nom, required this.prenom, required this.dateNaissance, required this.genre, required this.preference});
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<LoginAfterSignUpPage> createState() => _LoginAfterSignUpPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginAfterSignUpPageState extends State<LoginAfterSignUpPage> {
   String? errorMsg;
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -64,6 +70,20 @@ class _LoginPageState extends State<LoginPage> {
       final userId = supabase.auth.currentUser!.id;
       print('Utilisateur connecté: $userId');
       //creation du profile
+
+      await supabase.from('profile').insert({
+         'nom': widget.nom,
+         'prenom' : widget.prenom,
+         'email' : widget.email,
+         'date_naissance' : widget.dateNaissance,
+         'sexe' : widget.genre,
+         'preference' : widget.preference,
+         'user_id': userId,
+         'profession': '',
+         'pays': '',
+         'ville': '',
+         'bio': '',
+      });
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainPage()),
